@@ -7,7 +7,7 @@
     <name>TDengine-parser</name>
 
     <properties>
-        <antlr4.version>4.11.1</antlr4.version>
+        <antlr4.version>4.13.2</antlr4.version>
         <junit.version>4.13.2</junit.version>
     </properties>
 
