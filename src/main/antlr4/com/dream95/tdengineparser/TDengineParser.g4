@@ -4,11 +4,9 @@ options {
     tokenVocab = TDengineLexer;
 }
 
-// The main entry point for parsing a complete SQL command.
-sqlCommand
-    : cmd EOF
+sqlCommandList
+    : cmd (';' cmd)* ';'? EOF
     ;
-
 /*
  * =============================================================================
  * Main command rule (cmd) combining all possible SQL statements
@@ -828,7 +826,7 @@ dnodeList
     ;
 
 insertQuery
-    : INSERT INTO fullTableName (NK_LP colNameList NK_RP)? queryOrSubquery                              
+    : INSERT INTO insertTableClause+
     ;
 
 tagsLiteral
@@ -889,11 +887,12 @@ signedLiteral
     | durationLiteral
     | NULL                                                                                             
     | literalFunc
-    | NK_QUESTION                                                                                      
+    | NK_QUESTION
+    | timeCalcLiteral
     ;
 
 literalList
-    : signedLiteral (NK_COMMA signedLiteral)* 
+    : signedLiteral (NK_COMMA signedLiteral)*
     ;
 
 /*
@@ -1004,13 +1003,18 @@ functionExpression
     | substrFunc NK_LP exprOrSubquery FROM exprOrSubquery (FOR exprOrSubquery)? NK_RP                   
     | REPLACE NK_LP expressionList NK_RP                                                               
     | literalFunc
-    | randFunc                                                                                         
+    | randFunc
     ;
 
 literalFunc
     : noargFunc NK_LP NK_RP                                                                            
     | NOW
     | TODAY                                                                                            
+    ;
+
+timeCalcLiteral
+    : (NOW | TODAY) (NK_LP NK_RP)? (NK_PLUS | NK_MINUS) durationLiteral
+    | durationLiteral (NK_PLUS | NK_MINUS) (NOW | TODAY) (NK_LP NK_RP)?
     ;
 
 randFunc
@@ -1150,6 +1154,20 @@ searchCondition
  * Query Structure (FROM, SELECT, JOIN etc.) - CORRECTED SECTION
  * =============================================================================
  */
+insertTableClause
+   : fullTableName (NK_LP colNameList NK_RP)?
+     (usingClause? dataClause)
+   ;
+
+usingClause
+    : USING fullTableName  (NK_LP colNameList NK_RP)?
+      TAGS NK_LP tagsLiteralList NK_RP (NK_LP colNameList NK_RP)?
+      tableOptions
+    ;
+
+dataClause
+    : VALUES inPredicateValue+
+    ;
 
 fromClauseOpt
     : (FROM tableReferenceList)
