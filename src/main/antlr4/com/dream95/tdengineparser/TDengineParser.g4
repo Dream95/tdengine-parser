@@ -580,6 +580,10 @@ tagListOpt
     |
     ;
 
+tagList
+    : tagItem (NK_COMMA tagItem)*
+    ;
+
 tagItem
     : TBNAME
     | QTAGS                                                                                            
@@ -1155,12 +1159,20 @@ searchCondition
  * =============================================================================
  */
 insertTableClause
-   : fullTableName (NK_LP colNameList NK_RP)?
-     (usingClause? dataClause)
+   : fullTableName (NK_LP colNameList NK_RP)
+     (usingClauseWithoutCols? dataClause)
+   | fullTableName
+     (usingClauseWithOptCols? dataClause)
    ;
 
-usingClause
-    : USING fullTableName  (NK_LP colNameList NK_RP)?
+usingClauseWithoutCols
+    : USING fullTableName (NK_LP tagList NK_RP)?
+      TAGS NK_LP tagsLiteralList NK_RP
+      tableOptions
+    ;
+
+usingClauseWithOptCols
+    : USING fullTableName (NK_LP tagList NK_RP)?
       TAGS NK_LP tagsLiteralList NK_RP (NK_LP colNameList NK_RP)?
       tableOptions
     ;
